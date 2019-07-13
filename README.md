@@ -44,6 +44,8 @@ Compile and run the desired program.
 ```
 g++ main.cpp -o result;./result;rm result;
 ```
+Alternatively, you can use CMake to build and run the program
+
 
 ## Other Information
 * To learn more about neural networks, check out [this article](https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/) about backpropagation.
