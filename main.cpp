@@ -4,34 +4,27 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <thread>
-using namespace std;
+#include "layer.h"
 
-struct Node{
-    vector<float> weights={};
-    float activation=0;
-    float value=0;
-    float delta=0;
-    float bias=0;
-};
 
-vector<int> classes={};
+
+std::vector<int> classes={};
 
 struct Sample{
-    vector<float> input;
+    std::vector<float> input;
     int expected;
-    Sample(vector<float> i, int e){
+    Sample(std::vector<float> i, int e){
         input=i;
         expected=e;
     }
 };
-
+//legacy code 
 struct Network{
-    vector<vector<Node>> model;
-    vector<Sample> dataset;
-    vector<int> config;
+    std::vector<std::vector<Node>> model;
+    std::vector<Sample> dataset;
+    std::vector<int> config;
     Network(){   
     }
     float activation(float activation){
@@ -40,23 +33,23 @@ struct Network{
     float derivative(float out){
         return out*(1-out);
     }
-    void print(vector<vector<Node>>& clone){
+    void print(std::vector<std::vector<Node>>& clone){
         for(int x=0;x<clone.size();x++){
             for(int y=0;y<clone[x].size();y++){
-                cout << "[A: " << clone[x][y].activation << ", D:" << clone[x][y].delta << ", B: " << clone[x][y].bias << "] ";
+                std::cout << "[A: " << clone[x][y].activation << ", D:" << clone[x][y].delta << ", B: " << clone[x][y].bias << "] ";
             }
-            cout << endl;
+            std::cout << std::endl;
             for(int y=0;x!=clone.size()-1&&y<clone[x].size();y++){
-                cout << "[[ ";
+                std::cout << "[[ ";
                 for(int k=0;k<clone[x][y].weights.size();k++){
-                    cout << clone[x][y].weights[k] << " ";
+                    std::cout << clone[x][y].weights[k] << " ";
                 }
-                cout << "]]" << " ";
+				std::cout << "]]" << " ";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
     }
-    void init(vector<Sample> samples,vector<int> conf){
+    void init(std::vector<Sample> samples,std::vector<int> conf){
         config=conf;
         config.insert(config.begin(),samples[0].input.size());
         config.push_back(classes.size());
@@ -65,7 +58,7 @@ struct Network{
             for(int y=0;y<config[x];y++){
                 model[x].push_back(Node());
                 if(x!=config.size()-1){
-                    model[x][y].weights=vector<float>(config[x+1]);
+                    model[x][y].weights=std::vector<float>(config[x+1]);
                     for(int k=0;k<model[x][y].weights.size();k++){
                         model[x][y].weights[k]=float(rand()%200)/100-1;
                     }
@@ -74,7 +67,7 @@ struct Network{
         }
         dataset=samples;
     }
-    void propagate(vector<vector<Node>>& clone,Sample sample){
+    void propagate(std::vector<std::vector<Node>>& clone,Sample sample){
         for(int y=0;y<clone[0].size();y++){
             clone[0][y].value=sample.input[y];
         }
@@ -87,7 +80,7 @@ struct Network{
             }
         }
     }
-    void backprop(vector<vector<Node>>& clone){
+    void backprop(std::vector<std::vector<Node>>& clone){
         for(int x=clone.size()-2;x>=0;x--){
             for(int y=0;y<clone[x].size();y++){
                 float total=0;
@@ -98,7 +91,7 @@ struct Network{
             }
         }
     }
-    void update(vector<vector<Node>>& clone){
+    void update(std::vector<std::vector<Node>>& clone){
         for(int x=clone.size()-2;x>=0;x--){
             for(int y=0;y<clone[x].size();y++){
                 for(int k=0;k<clone[x][y].weights.size();k++){
@@ -112,7 +105,7 @@ struct Network{
             }
         }
     }
-    float cost(vector<vector<Node>>& clone,Sample sample){
+    float cost(std::vector<std::vector<Node>>& clone,Sample sample){
         float total=0;
         for(int i=0;i<clone[clone.size()-1].size();i++){
             total+=0.5*pow((sample.expected==i?1:0)-clone[clone.size()-1][i].activation,2);
@@ -126,24 +119,24 @@ struct Network{
         for(i=0;minError<totalError;i++){
             totalError=0;
             for(int k=0;k<dataset.size();k++){
-                vector<vector<Node>> clone=model;
+                std::vector<std::vector<Node>> clone=model;
                 propagate(clone,dataset[k]);
                 float caseCost=cost(clone,dataset[k]);
                 backprop(clone);
                 update(clone);
                 totalError+=caseCost;
             }
-            cout << "Epoch: " << i+1 << ", Total Error: " << totalError << endl;
+            std::cout << "Epoch: " << i+1 << ", Total Error: " << totalError << std::endl;
         }
-        cout << "Finished training in " << i << " epochs" << endl;
+        std::cout << "Finished training in " << i << " epochs" << std::endl;
         print(model);
     }
 };
 
 int main(){
     Network network=Network();
-    vector<Sample> samples;
-    set<int> classSet;
+    std::vector<Sample> samples;
+    std::set<int> classSet;
     for(int i=0;i<50;i++){
         int n=5;
         int a=rand()%n;
@@ -155,7 +148,7 @@ int main(){
     for(int i=0;i<samples.size();i++){
         classSet.insert(samples[i].expected);
     }
-    classes=vector<int>(classSet.size());
+    classes=std::vector<int>(classSet.size());
     copy(classSet.begin(),classSet.end(),classes.begin());
     for(int i=0;i<samples.size();i++){
         samples[i].expected=distance(classes.begin(),find(classes.begin(),classes.end(),samples[i].expected));
